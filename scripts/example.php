@@ -2,10 +2,12 @@
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-$pohoda = new \Pohoda\InvoiceExport\Pohoda('01508512');
+$factory = new \Pohoda\InvoiceExport\Factory();
+
+$pohoda = $factory->createPohoda('01508512');
 
 // cislo faktury
-$invoice = new \Pohoda\InvoiceExport\Invoice(324342);
+$invoice = $factory->createInvoice(324342);
 
 // cena fakutry s DPH
 $price = 1000;
@@ -43,12 +45,7 @@ $invoice->setPurchaserIdentity([
     "zip" => "160 00",
     "ico" => "034234"]);
 
-if ($invoice->isValid()) {
-    // pokud je faktura validni, pridame ji do exportu
-    $pohoda->setInvoice($invoice);
-} else {
-    var_dump($invoice->getErrors());
-}
+$pohoda->addInvoice($invoice);
 
 $errorsNo = 0; // pokud si pocitate chyby, projevi se to v nazvu souboru
 
