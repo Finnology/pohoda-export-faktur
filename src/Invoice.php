@@ -1,6 +1,13 @@
 <?php
+namespace Pohoda\InvoiceExport;
 
-class Invoice {
+use SimpleXMLElement;
+
+/**
+ * Class Invoice
+ */
+class Invoice
+{
     public $withVAT = false;
 
     public $type = 'issuedInvoice';
@@ -39,159 +46,233 @@ class Invoice {
     private $reqErrors = [];
     private $required = ['date', 'varNum', 'text'];
 
-    public function __construct($id) {
+    public function __construct($id)
+    {
         $this->id = $id;
         $this->setProviderIdentity([]);
         $this->setPurchaserIdentity([]);
 
     }
 
-    public function isValid() {
+    public function isValid()
+    {
         return $this->checkRequired() && empty($this->errors);
     }
 
-    private function checkRequired() {
+    private function checkRequired()
+    {
         $result = true;
         $this->reqErrors = [];
 
         foreach ($this->required as $param) {
             if (!isset($this->$param)) {
                 $result = false;
-                $this->reqErrors[] = 'Není nastaven povinný prvek '.$param;
+                $this->reqErrors[] = 'Není nastaven povinný prvek ' . $param;
             }
         }
 
         return $result;
     }
 
-    private function validateItem($name, $value, $maxLength = false, $isNumeric = false, $isDate = false) {
+    private function validateItem($name, $value, $maxLength = false, $isNumeric = false, $isDate = false)
+    {
 
         if ($maxLength !== false) {
             if (strlen($value) > $maxLength) {
-                $this->errors[] = $name.'="'.$value.'" - překročilo maximální délku ' . $maxLength;
+                $this->errors[] = $name . '="' . $value . '" - překročilo maximální délku ' . $maxLength;
             }
         }
 
         if ($isNumeric) {
             if (!is_numeric($value)) {
-                $this->errors[] = $name.'="'.$value.'" - není číslo';
+                $this->errors[] = $name . '="' . $value . '" - není číslo';
             }
         }
 
         if ($isDate) {
             if (!date_create($value)) {
-                $this->errors[] = $name.'="'.$value.'" - není datum';
+                $this->errors[] = $name . '="' . $value . '" - není datum';
             }
         }
     }
 
-    private function removeSpaces($value) {
+    private function removeSpaces($value)
+    {
         return preg_replace('/\s+/', '', $value);
     }
 
-    public function getErrors() {
+    public function getErrors()
+    {
         $arr = array_merge($this->errors, $this->reqErrors);
 
-        $fce = function($row) {
-            return $this->id.':'.$row;
+        $fce = function ($row) {
+            return $this->id . ':' . $row;
         };
         $arr = array_map($fce, $arr);
 
         return $arr;
     }
 
-    public function withVAT($value) {
+    public function withVAT($value)
+    {
         $this->withVAT = $value;
     }
 
-    public function setVariableNumber($value) {
+    public function setVariableNumber($value)
+    {
         $value = $this->removeSpaces($value);
         $this->validateItem('variable number', $value, 20, true);
         $this->varNum = $value;
     }
-    public function setDateCreated($value) {
+
+    public function setDateCreated($value)
+    {
         $this->validateItem('date created', $value, false, false, true);
         $this->date = $value;
     }
-    public function setDateTax($value) {
+
+    public function setDateTax($value)
+    {
         $this->validateItem('date tax', $value, false, false, true);
         $this->dateTax = $value;
     }
-    public function setDateAccounting($value) {
+
+    public function setDateAccounting($value)
+    {
         $this->validateItem('date accounting', $value, false, false, true);
         $this->dateAccounting = $value;
     }
-    public function setDateDue($value) {
+
+    public function setDateDue($value)
+    {
         $this->validateItem('date due', $value, false, false, true);
         $this->dateDue = $value;
     }
-    public function setText($value) {
+
+    public function setText($value)
+    {
         $this->validateItem('text', $value, 240);
         $this->text = $value;
     }
-    public function setBank($value) {
+
+    public function setBank($value)
+    {
         $this->validateItem('bank shortcut', $value, 19);
-        $this->$bankShortcut = $value;
+        $this->bankShortcut = $value;
     }
-    public function setPaymentTypeCzech($value) {
+
+    public function setPaymentTypeCzech($value)
+    {
         $this->validateItem('payment type czech', $value, 19);
         $this->paymentTypeCzech = $value;
     }
-    public function setAccounting($value) {
+
+    public function setAccounting($value)
+    {
         $this->validateItem('accounting', $value, 19);
         $this->accounting = $value;
     }
-    public function setNote($value) {
+
+    public function setNote($value)
+    {
         $this->note = $value;
     }
-    public function setContract($value) {
+
+    public function setContract($value)
+    {
         $this->validateItem('contract', $value, 10);
         $this->contract = $value;
     }
-    public function setSymbolicNumber($value) {
+
+    public function setSymbolicNumber($value)
+    {
         $value = $this->removeSpaces($value);
         $this->validateItem('symbolic number', $value, 20, true);
         $this->symbolicNumber = $value;
     }
-    public function setPrice($value) {
+
+    public function setPrice($value)
+    {
         $this->validateItem('price', $value, false, true);
         $this->priceTotal = $value;
     }
-    public function setPriceWithoutVAT($value) {
+
+    public function setPriceWithoutVAT($value)
+    {
         $this->validateItem('price without VAT', $value, false, true);
         $this->priceWithoutVAT = round($value, 2);
     }
-    public function setPriceOnlyVAT($value) {
+
+    public function setPriceOnlyVAT($value)
+    {
         $this->validateItem('price only VAT', $value, false, true);
         $this->priceOnlyVAT = round($value, 2);
     }
-    public function setQuantity($value) {
+
+    public function setQuantity($value)
+    {
         $this->validateItem('price', $value, false, true);
         $this->quantity = $value;
     }
-    public function setProviderIdentity($value) {
-        if (isset($value['zip'])) {$value['zip'] = $this->removeSpaces($value['zip']);}
-        if (isset($value['ico'])) {$value['ico'] = $this->removeSpaces($value['ico']);}
 
-        if (isset($value['company'])) {$this->validateItem('provider - company', $value['company'], 96);}
-        if (isset($value['street'])) { $this->validateItem('provider - street', $value['street'], 64);}
-        if (isset($value['zip'])) { $this->validateItem('provider - zip', $value['zip'], 15, true);}
-        if (isset($value['city'])) { $this->validateItem('provider - city', $value['city'], 45);}
-        if (isset($value['ico'])) { $this->validateItem('provider - ico', $value['ico'], 15, true);}
-        if (isset($value['number'])) { $this->validateItem('provider - number', $value['number'], 10);}
+    public function setProviderIdentity($value)
+    {
+        if (isset($value['zip'])) {
+            $value['zip'] = $this->removeSpaces($value['zip']);
+        }
+        if (isset($value['ico'])) {
+            $value['ico'] = $this->removeSpaces($value['ico']);
+        }
+
+        if (isset($value['company'])) {
+            $this->validateItem('provider - company', $value['company'], 96);
+        }
+        if (isset($value['street'])) {
+            $this->validateItem('provider - street', $value['street'], 64);
+        }
+        if (isset($value['zip'])) {
+            $this->validateItem('provider - zip', $value['zip'], 15, true);
+        }
+        if (isset($value['city'])) {
+            $this->validateItem('provider - city', $value['city'], 45);
+        }
+        if (isset($value['ico'])) {
+            $this->validateItem('provider - ico', $value['ico'], 15, true);
+        }
+        if (isset($value['number'])) {
+            $this->validateItem('provider - number', $value['number'], 10);
+        }
 
         $this->myIdentity = $value;
     }
-    public function setPurchaserIdentity($value) {
-        if (isset($value['zip'])) {$value['zip'] = $this->removeSpaces($value['zip']);}
-        if (isset($value['ico'])) {$value['ico'] = $this->removeSpaces($value['ico']);}
 
-        if (isset($value['company'])) {$this->validateItem('purchaser - company', $value['company'], 96);}
-        if (isset($value['division'])) {$this->validateItem('purchaser - division', $value['division'], 32);}
-        if (isset($value['street'])) { $this->validateItem('purchaser - street', $value['street'], 64);}
-        if (isset($value['zip'])) { $this->validateItem('purchaser - zip', $value['zip'], 15, true);}
-        if (isset($value['city'])) { $this->validateItem('purchaser - city', $value['city'], 45);}
-        if (isset($value['ico'])) { $this->validateItem('purchaser - ico', $value['ico'], 15, true);}
+    public function setPurchaserIdentity($value)
+    {
+        if (isset($value['zip'])) {
+            $value['zip'] = $this->removeSpaces($value['zip']);
+        }
+        if (isset($value['ico'])) {
+            $value['ico'] = $this->removeSpaces($value['ico']);
+        }
+
+        if (isset($value['company'])) {
+            $this->validateItem('purchaser - company', $value['company'], 96);
+        }
+        if (isset($value['division'])) {
+            $this->validateItem('purchaser - division', $value['division'], 32);
+        }
+        if (isset($value['street'])) {
+            $this->validateItem('purchaser - street', $value['street'], 64);
+        }
+        if (isset($value['zip'])) {
+            $this->validateItem('purchaser - zip', $value['zip'], 15, true);
+        }
+        if (isset($value['city'])) {
+            $this->validateItem('purchaser - city', $value['city'], 45);
+        }
+        if (isset($value['ico'])) {
+            $this->validateItem('purchaser - ico', $value['ico'], 15, true);
+        }
         if (isset($value['number'])) {
             $this->errors[] = 'purchaser nesmi mit nastaven type: number';
         }
@@ -199,7 +280,8 @@ class Invoice {
         $this->partnerIdentity = $value;
     }
 
-    public function export(SimpleXMLElement $xml) {
+    public function export(SimpleXMLElement $xml)
+    {
         $xmlInvoice = $xml->addChild("inv:invoice", null, Pohoda::$NS_INVOICE);
         $xmlInvoice->addAttribute('version', "2.0");
 
@@ -211,8 +293,8 @@ class Invoice {
         $this->exportSummary($xmlInvoice->addChild("inv:invoiceSummary", null, Pohoda::$NS_INVOICE));
     }
 
-    private function exportHeader(SimpleXMLElement $header) {
-
+    private function exportHeader(SimpleXMLElement $header)
+    {
         $header->addChild("inv:invoiceType", $this->type);
         $num = $header->addChild("inv:number");
         $num->addChild('typ:numberRequested', $this->varNum, Pohoda::$NS_TYPE);
@@ -232,8 +314,7 @@ class Invoice {
         $classification = $header->addChild("inv:classificationVAT");
         if ($this->withVAT) {
             $classification->addChild('typ:classificationVATType', 'inland', Pohoda::$NS_TYPE);
-        }
-        else {
+        } else {
             $classification->addChild('typ:ids', 'UN', Pohoda::$NS_TYPE);
             $classification->addChild('typ:classificationVATType', 'nonSubsume', Pohoda::$NS_TYPE);
         }
@@ -271,16 +352,15 @@ class Invoice {
 
         $partnerIdentity = $header->addChild("inv:partnerIdentity");
         $this->exportAddress($partnerIdentity, $this->partnerIdentity);
-
-
     }
 
-    private function exportDetail(SimpleXMLElement $detail) {
+    private function exportDetail(SimpleXMLElement $detail)
+    {
 
         $item = $detail->addChild("inv:invoiceItem");
         $item->addChild("inv:quantity", $this->quantity);
         $item->addChild("inv:coefficient", $this->coefficient);
-        $item->addChild("inv:payVAT", $this->withVAT?'true':'false');
+        $item->addChild("inv:payVAT", $this->withVAT ? 'true' : 'false');
         $item->addChild("inv:rateVAT", 'high');
         $item->addChild("inv:discountPercentage", '0.0');
 
@@ -292,8 +372,8 @@ class Invoice {
 
     }
 
-    private function exportAddress($xml, Array $data) {
-
+    private function exportAddress(SimpleXMLElement $xml, Array $data)
+    {
         $address = $xml->addChild('typ:address', null, Pohoda::$NS_TYPE);
 
         if (isset($data['company'])) {
@@ -329,7 +409,8 @@ class Invoice {
         }
     }
 
-    private function exportSummary(SimpleXMLElement $summary) {
+    private function exportSummary(SimpleXMLElement $summary)
+    {
 
         $summary->addChild("inv:roundingDocument", 'up2one');
         $summary->addChild("inv:roundingVAT", 'none');
@@ -345,9 +426,6 @@ class Invoice {
 
         $round = $hc->addChild('typ:round', null, Pohoda::$NS_TYPE);
         $round->addChild('typ:priceRound', 0, Pohoda::$NS_TYPE);
-
-
-
     }
 }
 

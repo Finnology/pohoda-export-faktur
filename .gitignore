@@ -1,0 +1,14 @@
+vendor
+*.bak
+tests/coverage
+build/coverage
+build/logs
+nbproject
+.idea/
+*.orig
+*.project
+*.buildpath
+.cache
+.lockout
+.settings/
+docs/api/

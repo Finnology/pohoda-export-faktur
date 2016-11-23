@@ -1,5 +1,9 @@
 <?php
+namespace Pohoda\InvoiceExport;
 
+/**
+ * Class Pohoda
+ */
 class Pohoda {
 
     public static $NS_INVOICE = 'http://www.stormware.cz/schema/version_2/invoice.xsd';

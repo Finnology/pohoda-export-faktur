@@ -1,0 +1,9 @@
+{
+  "name": "pohoda/invoice-export",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Pohoda\\InvoiceExport\\": "src/"
+    }
+  }
+}
