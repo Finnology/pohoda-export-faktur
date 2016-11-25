@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="Windows-1250"?>
+<dat:dataPack id="Faktury_100" ico="29048770" application="StwTest" version="2.0" note="Import FA"
+              xmlns:dat="http://www.stormware.cz/schema/version_2/data.xsd"
+              xmlns:inv="http://www.stormware.cz/schema/version_2/invoice.xsd"
+              xmlns:typ="http://www.stormware.cz/schema/version_2/type.xsd">
+
+
+    <dat:dataPackItem id="21295712" version="2.0">
+        <inv:invoice version="2.0">
+            <inv:invoiceHeader>
+                <inv:invoiceType>receivedInvoice</inv:invoiceType>
+                <inv:number>
+                    <typ:numberRequested>FP21295712</typ:numberRequested>
+                </inv:number>
+                <inv:originalDocument>21295712</inv:originalDocument>
+                <inv:symVar>21295712</inv:symVar>
+                <inv:symSpec>160015340</inv:symSpec>
+                <inv:date>2015-10-07</inv:date>
+                <inv:dateTax>2015-10-07</inv:dateTax>
+                <inv:dateAccounting>2015-09-29</inv:dateAccounting>
+                <inv:dateDue>2015-10-21</inv:dateDue>
+                <inv:accounting>
+                    <typ:ids>548/321provize</typ:ids>
+                </inv:accounting>
+                <inv:classificationVAT>
+                    <typ:ids>PN</typ:ids>
+                </inv:classificationVAT>
+                <inv:text>Provizní výpis FP21295712</inv:text>
+                <inv:partnerIdentity>
+                    <typ:address>
+                        <typ:company>Bonnet.cz spol. s r.o.</typ:company>
+                        <typ:division></typ:division>
+                        <typ:name></typ:name>
+                        <typ:city>Praha 4-Nusle</typ:city>
+                        <typ:street>Na Hřebenech II 1718/8</typ:street>
+                        <typ:zip>14000</typ:zip>
+                        <typ:ico>29048770</typ:ico>
+                        <typ:dic></typ:dic>
+                    </typ:address>
+                </inv:partnerIdentity>
+                <inv:paymentAccount>
+                    <typ:accountNo>2000130189</typ:accountNo>
+                    <typ:bankCode>2010</typ:bankCode>
+                </inv:paymentAccount>
+                <inv:note>Uzávěrka č. 100 - výpis č. 100 ze dne 07.10.2015</inv:note>
+                <inv:intNote>Tento doklad byl vytvořen importem přes XML.</inv:intNote>
+            </inv:invoiceHeader>
+            <inv:invoiceDetail>
+                <inv:invoiceItem>
+                    <inv:text>Provize</inv:text>
+                    <inv:quantity>1</inv:quantity>
+                    <inv:rateVAT>none</inv:rateVAT>
+                    <inv:homeCurrency>
+                        <typ:unitPrice>123.123</typ:unitPrice>
+                    </inv:homeCurrency>
+                    <inv:accounting>
+                        <typ:ids>548/321provize</typ:ids>
+                    </inv:accounting>
+                </inv:invoiceItem>
+
+
+                <inv:invoiceItem>
+                    <inv:text>Storno</inv:text>
+                    <inv:quantity>1</inv:quantity>
+                    <inv:rateVAT>none</inv:rateVAT>
+                    <inv:homeCurrency>
+                        <typ:unitPrice>0.00</typ:unitPrice>
+                    </inv:homeCurrency>
+                    <inv:accounting>
+                        <typ:ids>321100/321000</typ:ids>
+                    </inv:accounting>
+                </inv:invoiceItem>
+                <inv:invoiceItem>
+                    <inv:text>text ostatních položek</inv:text>
+                    <inv:quantity>1</inv:quantity>
+                    <inv:rateVAT>none</inv:rateVAT>
+                    <inv:homeCurrency>
+                        <typ:unitPrice>0.00</typ:unitPrice>
+                    </inv:homeCurrency>
+                    <inv:accounting>
+                        <typ:ids></typ:ids>
+                    </inv:accounting>
+                </inv:invoiceItem>
+            </inv:invoiceDetail>
+            <inv:invoiceSummary>
+                <inv:homeCurrency>
+                    <typ:priceNone>123.123</typ:priceNone>
+                    <typ:priceLow>0</typ:priceLow>
+                    <typ:priceHighSum>0</typ:priceHighSum>
+                </inv:homeCurrency>
+            </inv:invoiceSummary>
+        </inv:invoice>
+    </dat:dataPackItem>
+</dat:dataPack>
