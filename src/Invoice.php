@@ -26,12 +26,9 @@ class Invoice
     public $accounting = '2Fv';
     public $symbolicNumber = '0308';
 
-    public $quantity = '1.0';
     public $coefficient = '1.0';
 
     public $priceTotal = 0;
-    public $priceWithoutVAT = 0;
-    public $priceOnlyVAT;
     /** Zakazka
      * @var string
      */
@@ -46,6 +43,13 @@ class Invoice
     private $reqErrors = [];
     private $required = ['date', 'varNum', 'text'];
 
+    /** @var Item[] */
+    protected $items = [];
+
+    /**
+     * Invoice constructor.
+     * @param string $id
+     */
     public function __construct($id)
     {
         $this->id = $id;
@@ -54,11 +58,26 @@ class Invoice
 
     }
 
+    /**
+     * @param Item $item
+     */
+    public function addItem(Item $item)
+    {
+        $this->items[] = $item;
+        $this->priceTotal = $this->priceTotal + $item->getTotalPriceNone();
+    }
+
+    /**
+     * @return bool
+     */
     public function isValid()
     {
         return $this->checkRequired() && empty($this->errors);
     }
 
+    /**
+     * @return bool
+     */
     private function checkRequired()
     {
         $result = true;
@@ -74,6 +93,13 @@ class Invoice
         return $result;
     }
 
+    /**
+     * @param $name
+     * @param $value
+     * @param bool $maxLength
+     * @param bool $isNumeric
+     * @param bool $isDate
+     */
     private function validateItem($name, $value, $maxLength = false, $isNumeric = false, $isDate = false)
     {
 
@@ -96,11 +122,18 @@ class Invoice
         }
     }
 
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
     private function removeSpaces($value)
     {
         return preg_replace('/\s+/', '', $value);
     }
 
+    /**
+     * @return array
+     */
     public function getErrors()
     {
         $arr = array_merge($this->errors, $this->reqErrors);
@@ -113,11 +146,17 @@ class Invoice
         return $arr;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function withVAT($value)
     {
         $this->withVAT = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setVariableNumber($value)
     {
         $value = $this->removeSpaces($value);
@@ -125,65 +164,98 @@ class Invoice
         $this->varNum = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setDateCreated($value)
     {
         $this->validateItem('date created', $value, false, false, true);
         $this->date = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setDateTax($value)
     {
         $this->validateItem('date tax', $value, false, false, true);
         $this->dateTax = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setDateAccounting($value)
     {
         $this->validateItem('date accounting', $value, false, false, true);
         $this->dateAccounting = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setDateDue($value)
     {
         $this->validateItem('date due', $value, false, false, true);
         $this->dateDue = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setText($value)
     {
         $this->validateItem('text', $value, 240);
         $this->text = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setBank($value)
     {
         $this->validateItem('bank shortcut', $value, 19);
         $this->bankShortcut = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setPaymentTypeCzech($value)
     {
         $this->validateItem('payment type czech', $value, 19);
         $this->paymentTypeCzech = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setAccounting($value)
     {
         $this->validateItem('accounting', $value, 19);
         $this->accounting = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setNote($value)
     {
         $this->note = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setContract($value)
     {
         $this->validateItem('contract', $value, 10);
         $this->contract = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setSymbolicNumber($value)
     {
         $value = $this->removeSpaces($value);
@@ -191,30 +263,9 @@ class Invoice
         $this->symbolicNumber = $value;
     }
 
-    public function setPrice($value)
-    {
-        $this->validateItem('price', $value, false, true);
-        $this->priceTotal = $value;
-    }
-
-    public function setPriceWithoutVAT($value)
-    {
-        $this->validateItem('price without VAT', $value, false, true);
-        $this->priceWithoutVAT = round($value, 2);
-    }
-
-    public function setPriceOnlyVAT($value)
-    {
-        $this->validateItem('price only VAT', $value, false, true);
-        $this->priceOnlyVAT = round($value, 2);
-    }
-
-    public function setQuantity($value)
-    {
-        $this->validateItem('price', $value, false, true);
-        $this->quantity = $value;
-    }
-
+    /**
+     * @param mixed $value
+     */
     public function setProviderIdentity($value)
     {
         if (isset($value['zip'])) {
@@ -246,6 +297,9 @@ class Invoice
         $this->myIdentity = $value;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setPurchaserIdentity($value)
     {
         if (isset($value['zip'])) {
@@ -280,6 +334,9 @@ class Invoice
         $this->partnerIdentity = $value;
     }
 
+    /**
+     * @param SimpleXMLElement $xml
+     */
     public function export(SimpleXMLElement $xml)
     {
         $xmlInvoice = $xml->addChild("inv:invoice", null, Pohoda::$NS_INVOICE);
@@ -287,12 +344,13 @@ class Invoice
 
 
         $this->exportHeader($xmlInvoice->addChild("inv:invoiceHeader", null, Pohoda::$NS_INVOICE));
-        if ($this->withVAT) {
-            $this->exportDetail($xmlInvoice->addChild("inv:invoiceDetail", null, Pohoda::$NS_INVOICE));
-        }
+        $this->exportDetail($xmlInvoice->addChild("inv:invoiceDetail", null, Pohoda::$NS_INVOICE));
         $this->exportSummary($xmlInvoice->addChild("inv:invoiceSummary", null, Pohoda::$NS_INVOICE));
     }
 
+    /**
+     * @param SimpleXMLElement $header
+     */
     private function exportHeader(SimpleXMLElement $header)
     {
         $header->addChild("inv:invoiceType", $this->type);
@@ -354,24 +412,21 @@ class Invoice
         $this->exportAddress($partnerIdentity, $this->partnerIdentity);
     }
 
+    /**
+     * @param SimpleXMLElement $detail
+     */
     private function exportDetail(SimpleXMLElement $detail)
     {
-
-        $item = $detail->addChild("inv:invoiceItem");
-        $item->addChild("inv:quantity", $this->quantity);
-        $item->addChild("inv:coefficient", $this->coefficient);
-        $item->addChild("inv:payVAT", $this->withVAT ? 'true' : 'false');
-        $item->addChild("inv:rateVAT", 'high');
-        $item->addChild("inv:discountPercentage", '0.0');
-
-        $hc = $item->addChild("inv:homeCurrency");
-        $hc->addChild('typ:unitPrice', $this->priceWithoutVAT, Pohoda::$NS_TYPE);
-        $hc->addChild('typ:price', $this->priceWithoutVAT, Pohoda::$NS_TYPE);
-        $hc->addChild('typ:priceVAT', $this->priceOnlyVAT, Pohoda::$NS_TYPE);
-        $hc->addChild('typ:priceSum', $this->priceTotal, Pohoda::$NS_TYPE);
-
+        foreach ($this->items as $item) {
+            $itemXML = $detail->addChild("inv:invoiceItem");
+            $item->export($itemXML);
+        }
     }
 
+    /**
+     * @param SimpleXMLElement $xml
+     * @param array $data
+     */
     private function exportAddress(SimpleXMLElement $xml, Array $data)
     {
         $address = $xml->addChild('typ:address', null, Pohoda::$NS_TYPE);
@@ -409,6 +464,9 @@ class Invoice
         }
     }
 
+    /**
+     * @param SimpleXMLElement $summary
+     */
     private function exportSummary(SimpleXMLElement $summary)
     {
 

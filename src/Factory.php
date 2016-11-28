@@ -7,6 +7,15 @@ namespace Pohoda\InvoiceExport;
 class Factory
 {
     /**
+     * @param $text
+     * @return Item
+     */
+    public function createItem($text)
+    {
+        return new Item($text);
+    }
+
+    /**
      * @param int $id
      * @return Invoice
      */
