@@ -9,12 +9,12 @@ $pohoda = $factory->createPohoda('01508512');
 // cislo faktury
 $invoice = $factory->createInvoice(324342);
 
-$item1 = $factory->createItem('Colt M1911');
+$item1 = $factory->createItem();
 $item1->setAccounting('some_string');
 $item1->setQuantity(5);
 $item1->setUnitPrice(20000);
 
-$item2 = $factory->createItem('CZ V75');
+$item2 = $factory->createItem();
 $item2->setAccounting('some_string');
 $item2->setQuantity(10);
 $item2->setUnitPrice(10000);
@@ -54,10 +54,8 @@ $invoice->setPurchaserIdentity([
 
 $pohoda->addInvoice($invoice);
 
-$errorsNo = 0; // pokud si pocitate chyby, projevi se to v nazvu souboru
-
 // ulozeni do souboru
-$pohoda->exportToFile(time(), 'popis', date("Y-m-d_H-i-s"), $errorsNo);
+$pohoda->exportToFile(time(), 'popis', date("Y-m-d_H-i-s"), 0);
 
 // vypsani na obrazovku jako XML s hlavickou
 $pohoda->exportAsXml(time(), 'popis', date("Y-m-d_H-i-s"));

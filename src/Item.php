@@ -26,7 +26,7 @@ class Item
     /**
      * @param string $text
      */
-    public function __construct($text)
+    public function setText($text)
     {
         $this->text = $text;
     }

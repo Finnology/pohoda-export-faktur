@@ -7,12 +7,11 @@ namespace Pohoda\InvoiceExport;
 class Factory
 {
     /**
-     * @param $text
      * @return Item
      */
-    public function createItem($text)
+    public function createItem()
     {
-        return new Item($text);
+        return new Item();
     }
 
     /**

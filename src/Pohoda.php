@@ -20,6 +20,17 @@ class Pohoda
     /** @var string */
     protected $ico;
 
+    /** @var string */
+    protected $encoding = 'UTF-8';
+
+    /**
+     * @param string $encoding
+     */
+    public function setEncoding($encoding)
+    {
+        $this->encoding = $encoding;
+    }
+
     /**
      * Pohoda constructor.
      *
@@ -50,35 +61,39 @@ class Pohoda
      * @param int $errorsNo
      * @param string $note
      */
-    public function exportToFile($exportId, $application, $fileName, $errorsNo, $note = '') {
-
+    public function exportToFile($exportId, $application, $fileName, $errorsNo, $note = '')
+    {
         $xml = $this->export($exportId, $application, $note);
         $incomplete = '';
         if ($errorsNo > 0) {
             $incomplete = '_incomplete';
         }
-        $xml->asXML(dirname(__FILE__).'/'.$fileName.'_lastId-'.$this->lastId.$incomplete.'.xml');
+
+        file_put_contents(
+            dirname(__FILE__).'/'.$fileName.'_lastId-'.$this->lastId.$incomplete.'.xml',
+            $xml->asXML()
+        );
     }
 
     /**
      * @param string $exportId
      * @param string $application
      * @param string $note
+     * @return string
      */
-    public function exportAsXml($exportId, $application, $note = '') {
-        header ("Content-Type:text/xml; charset=utf-8");
+    public function exportAsXml($exportId, $application, $note = '')
+    {
         $xml = $this->export($exportId, $application, $note);
-        echo $xml->asXML();
+        return $xml->asXML();
     }
 
     /**
-     * @param string $exportId
-     * @param string $application
-     * @param string $note
+     * @return string
      */
-    public function exportAsString($exportId, $application, $note = '') {
-        $xml = $this->export($exportId, $application, $note);
-        echo $xml->asXML();
+    public function getContentType()
+    {
+        $charset = strtolower($this->encoding);
+        return "text/xml; charset=$charset";
     }
 
     /**
@@ -87,8 +102,8 @@ class Pohoda
      * @param string $note
      * @return SimpleXMLElement
      */
-    private function export($exportId, $application, $note = '') {
-        $xmlText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dat:dataPack id=\"".$exportId."\" ico=\"".$this->ico."\" application=\"".$application."\" version = \"2.0\" note=\"".$note."\" xmlns:dat=\"http://www.stormware.cz/schema/version_2/data.xsd\"></dat:dataPack>";
+    protected function export($exportId, $application, $note = '') {
+        $xmlText = "<?xml version=\"1.0\" encoding=\"$this->encoding\"?>\n<dat:dataPack id=\"".$exportId."\" ico=\"".$this->ico."\" application=\"".$application."\" version = \"2.0\" note=\"".$note."\" xmlns:dat=\"http://www.stormware.cz/schema/version_2/data.xsd\" xmlns:inv=\"http://www.stormware.cz/schema/version_2/invoice.xsd\" xmlns:typ=\"http://www.stormware.cz/schema/version_2/type.xsd\" ></dat:dataPack>";
         $xml = simplexml_load_string($xmlText);
 
         $i = 0;
@@ -96,7 +111,7 @@ class Pohoda
             $i++;
             $dataItem = $xml->addChild("dat:dataPackItem");
             $dataItem->addAttribute('version', "2.0");
-            $dataItem->addAttribute('id', $exportId . '-' . $i);
+            $dataItem->addAttribute('id', $item->getId());
 
             $item->export($dataItem);
 

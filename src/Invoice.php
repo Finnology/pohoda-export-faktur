@@ -14,10 +14,12 @@ class Invoice
     public $paymentType = 'draft';
 
     public $varNum;
+    public $specNum;
     public $date;
     public $dateTax;
     public $dateAccounting;
     public $dateDue;
+    public $code;
     public $text;
     public $bankShortcut = 'FIO';
     public $note;
@@ -46,6 +48,12 @@ class Invoice
     /** @var Item[] */
     protected $items = [];
 
+    /** @var string */
+    protected $accountNo;
+
+    /** @var string */
+    protected $bankCode;
+
     /**
      * Invoice constructor.
      * @param string $id
@@ -55,7 +63,14 @@ class Invoice
         $this->id = $id;
         $this->setProviderIdentity([]);
         $this->setPurchaserIdentity([]);
+    }
 
+    /**
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -155,13 +170,31 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string $value
+     */
+    public function setType($value)
+    {
+        $this->type = $value;
+    }
+
+    /**
+     * @param int $value
      */
     public function setVariableNumber($value)
     {
         $value = $this->removeSpaces($value);
         $this->validateItem('variable number', $value, 20, true);
         $this->varNum = $value;
+    }
+
+    /**
+     * @param int $value
+     */
+    public function setSpecificNumber($value)
+    {
+        $value = $this->removeSpaces($value);
+        $this->validateItem('variable number', $value, 20, true);
+        $this->specNum = $value;
     }
 
     /**
@@ -201,7 +234,15 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string $value
+     */
+    public function setCode($value)
+    {
+        $this->code = $value;
+    }
+
+    /**
+     * @param $value
      */
     public function setText($value)
     {
@@ -210,7 +251,7 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string $value
      */
     public function setBank($value)
     {
@@ -219,7 +260,7 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string $value
      */
     public function setPaymentTypeCzech($value)
     {
@@ -228,7 +269,23 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string $value
+     */
+    public function setAccountNo($value)
+    {
+        $this->accountNo = $value;
+    }
+
+    /**
+     * @param string $value
+     */
+    public function setBankCode($value)
+    {
+        $this->bankCode = $value;
+    }
+
+    /**
+     * @param string $value
      */
     public function setAccounting($value)
     {
@@ -237,7 +294,7 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string $value
      */
     public function setNote($value)
     {
@@ -245,7 +302,7 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string $value
      */
     public function setContract($value)
     {
@@ -254,7 +311,7 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param int $value
      */
     public function setSymbolicNumber($value)
     {
@@ -264,9 +321,9 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string[] $value
      */
-    public function setProviderIdentity($value)
+    public function setProviderIdentity(array $value)
     {
         if (isset($value['zip'])) {
             $value['zip'] = $this->removeSpaces($value['zip']);
@@ -298,9 +355,9 @@ class Invoice
     }
 
     /**
-     * @param mixed $value
+     * @param string[] $value
      */
-    public function setPurchaserIdentity($value)
+    public function setPurchaserIdentity(array $value)
     {
         if (isset($value['zip'])) {
             $value['zip'] = $this->removeSpaces($value['zip']);
@@ -355,30 +412,31 @@ class Invoice
     {
         $header->addChild("inv:invoiceType", $this->type);
         $num = $header->addChild("inv:number");
-        $num->addChild('typ:numberRequested', $this->varNum, Pohoda::$NS_TYPE);
+        $num->addChild('typ:numberRequested', $this->code, Pohoda::$NS_TYPE);
+
+        $header->addChild("inv:originalDocument", $this->id);
 
         $header->addChild("inv:symVar", $this->varNum);
-
+        $header->addChild("inv:symSpec", $this->specNum);
 
         $header->addChild("inv:date", $this->date);
         $header->addChild("inv:dateTax", $this->dateTax);
-        $header->addChild("inv:dateDue", $this->dateDue);
 
         if (isset($this->dateAccounting)) {
             $header->addChild("inv:dateAccounting", $this->dateAccounting);
         }
 
+        $header->addChild("inv:dateDue", $this->dateDue);
+
+        $accounting = $header->addChild("inv:accounting");
+        $accounting->addChild('typ:ids', $this->accounting, Pohoda::$NS_TYPE);
 
         $classification = $header->addChild("inv:classificationVAT");
         if ($this->withVAT) {
             $classification->addChild('typ:classificationVATType', 'inland', Pohoda::$NS_TYPE);
         } else {
-            $classification->addChild('typ:ids', 'UN', Pohoda::$NS_TYPE);
-            $classification->addChild('typ:classificationVATType', 'nonSubsume', Pohoda::$NS_TYPE);
+            $classification->addChild('typ:ids', 'PN', Pohoda::$NS_TYPE);
         }
-
-        $accounting = $header->addChild("inv:accounting");
-        $accounting->addChild('typ:ids', $this->accounting, Pohoda::$NS_TYPE);
 
         $header->addChild("inv:text", $this->text);
 
@@ -410,6 +468,10 @@ class Invoice
 
         $partnerIdentity = $header->addChild("inv:partnerIdentity");
         $this->exportAddress($partnerIdentity, $this->partnerIdentity);
+
+        $paymentAccount = $header->addChild("inv:paymentAccoun");
+        $paymentAccount->addChild("typ:accountNo", $this->accountNo);
+        $paymentAccount->addChild("typ:bankCode", $this->bankCode);
     }
 
     /**
@@ -469,7 +531,6 @@ class Invoice
      */
     private function exportSummary(SimpleXMLElement $summary)
     {
-
         $summary->addChild("inv:roundingDocument", 'up2one');
         $summary->addChild("inv:roundingVAT", 'none');
 
