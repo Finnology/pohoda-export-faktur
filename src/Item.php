@@ -91,11 +91,11 @@ class Item
         $itemXML->addChild("inv:rateVAT", $this->rateVAT == 0 ? 'none' : $this->rateVAT);
 
         $itemXML->addChild("inv:homeCurrency")
-            ->addChild('typ:unitPrice', $this->unitPrice)
+            ->addChild('typ:unitPrice', $this->unitPrice, Pohoda::$NS_TYPE)
         ;
 
         $itemXML->addChild("inv:accounting")
-            ->addChild("typ:ids", $this->accounting)
+            ->addChild("typ:ids", $this->accounting, Pohoda::$NS_TYPE)
         ;
     }
 }

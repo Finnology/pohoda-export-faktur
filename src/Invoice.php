@@ -11,7 +11,6 @@ class Invoice
     public $withVAT = false;
 
     public $type = 'issuedInvoice';
-    public $paymentType = 'draft';
 
     public $varNum;
     public $specNum;
@@ -21,20 +20,13 @@ class Invoice
     public $dateDue;
     public $code;
     public $text;
-    public $bankShortcut = 'FIO';
     public $note;
 
-    public $paymentTypeCzech = 'příkazem';
     public $accounting = '2Fv';
-    public $symbolicNumber = '0308';
 
     public $coefficient = '1.0';
 
     public $priceTotal = 0;
-    /** Zakazka
-     * @var string
-     */
-    public $contract;
 
     public $myIdentity = [];
 
@@ -262,15 +254,6 @@ class Invoice
     /**
      * @param string $value
      */
-    public function setPaymentTypeCzech($value)
-    {
-        $this->validateItem('payment type czech', $value, 19);
-        $this->paymentTypeCzech = $value;
-    }
-
-    /**
-     * @param string $value
-     */
     public function setAccountNo($value)
     {
         $this->accountNo = $value;
@@ -422,9 +405,7 @@ class Invoice
         $header->addChild("inv:date", $this->date);
         $header->addChild("inv:dateTax", $this->dateTax);
 
-        if (isset($this->dateAccounting)) {
-            $header->addChild("inv:dateAccounting", $this->dateAccounting);
-        }
+        $header->addChild("inv:dateAccounting", $this->dateAccounting);
 
         $header->addChild("inv:dateDue", $this->dateDue);
 
@@ -432,46 +413,22 @@ class Invoice
         $accounting->addChild('typ:ids', $this->accounting, Pohoda::$NS_TYPE);
 
         $classification = $header->addChild("inv:classificationVAT");
-        if ($this->withVAT) {
-            $classification->addChild('typ:classificationVATType', 'inland', Pohoda::$NS_TYPE);
-        } else {
-            $classification->addChild('typ:ids', 'PN', Pohoda::$NS_TYPE);
-        }
+        $classification->addChild('typ:ids', 'PN', Pohoda::$NS_TYPE);
 
         $header->addChild("inv:text", $this->text);
-
-        $paymentType = $header->addChild("inv:paymentType");
-        $paymentType->addChild('typ:paymentType', $this->paymentType, Pohoda::$NS_TYPE);
-        $paymentType->addChild('typ:ids', $this->paymentTypeCzech, Pohoda::$NS_TYPE);
-
-        $account = $header->addChild("inv:account");
-        $account->addChild('typ:ids', $this->bankShortcut, Pohoda::$NS_TYPE);
-
-        if (isset($this->note)) {
-            $header->addChild("inv:note", $this->note);
-        }
-
-        $header->addChild("inv:intNote", 'Tento doklad byl vytvořen importem přes XML.');
-
-        if (isset($this->contract)) {
-            $contract = $header->addChild("inv:contract");
-            $contract->addChild('typ:ids', $this->contract, Pohoda::$NS_TYPE);
-        }
-
-        $header->addChild("inv:symConst", $this->symbolicNumber);
-
-        $liq = $header->addChild("inv:liquidation");
-        $liq->addChild('typ:amountHome', $this->priceTotal, Pohoda::$NS_TYPE);
-
-        $myIdentity = $header->addChild("inv:myIdentity");
-        $this->exportAddress($myIdentity, $this->myIdentity);
 
         $partnerIdentity = $header->addChild("inv:partnerIdentity");
         $this->exportAddress($partnerIdentity, $this->partnerIdentity);
 
-        $paymentAccount = $header->addChild("inv:paymentAccoun");
-        $paymentAccount->addChild("typ:accountNo", $this->accountNo);
-        $paymentAccount->addChild("typ:bankCode", $this->bankCode);
+        $myIdentity = $header->addChild("inv:myIdentity");
+        $this->exportAddress($myIdentity, $this->myIdentity);
+
+        $paymentAccount = $header->addChild("inv:paymentAccount");
+        $paymentAccount->addChild("typ:accountNo", $this->accountNo, Pohoda::$NS_TYPE);
+        $paymentAccount->addChild("typ:bankCode", $this->bankCode, Pohoda::$NS_TYPE);
+
+        $header->addChild("inv:note", $this->note);
+        $header->addChild("inv:intNote", 'Tento doklad byl vytvořen importem přes XML.');
     }
 
     /**
@@ -531,20 +488,10 @@ class Invoice
      */
     private function exportSummary(SimpleXMLElement $summary)
     {
-        $summary->addChild("inv:roundingDocument", 'up2one');
-        $summary->addChild("inv:roundingVAT", 'none');
-
         $hc = $summary->addChild("inv:homeCurrency");
         $hc->addChild('typ:priceNone', $this->priceTotal, Pohoda::$NS_TYPE);
         $hc->addChild('typ:priceLow', 0, Pohoda::$NS_TYPE);
-        $hc->addChild('typ:priceLowVAT', 0, Pohoda::$NS_TYPE);
-        $hc->addChild('typ:priceLowSum', 0, Pohoda::$NS_TYPE);
-        $hc->addChild('typ:priceHigh', 0, Pohoda::$NS_TYPE);
-        $hc->addChild('typ:priceHighVAT', 0, Pohoda::$NS_TYPE);
         $hc->addChild('typ:priceHighSum', 0, Pohoda::$NS_TYPE);
-
-        $round = $hc->addChild('typ:round', null, Pohoda::$NS_TYPE);
-        $round->addChild('typ:priceRound', 0, Pohoda::$NS_TYPE);
     }
 }
 
