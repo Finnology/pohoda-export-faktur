@@ -367,9 +367,6 @@ class Invoice
         if (isset($value['ico'])) {
             $this->validateItem('purchaser - ico', $value['ico'], 15, true);
         }
-        if (isset($value['number'])) {
-            $this->errors[] = 'purchaser nesmi mit nastaven type: number';
-        }
 
         $this->partnerIdentity = $value;
     }
