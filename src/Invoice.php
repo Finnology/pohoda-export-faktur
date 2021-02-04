@@ -478,6 +478,10 @@ class Invoice
         if (isset($data['dic'])) {
             $address->addChild('typ:dic', $data['dic']);
         }
+
+        if (isset($data['icDph'])) {
+            $address->addChild('typ:icDph', $data['icDph']);
+        }
     }
 
     /**
